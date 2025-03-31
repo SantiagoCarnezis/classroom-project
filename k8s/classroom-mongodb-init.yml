@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: classroom-init-replicaset
+spec:
+  template:
+    spec:
+      containers:
+        - name: classroom-init-replicaset
+          image: mongo:6.0
+          command:
+            - mongosh
+            - "--host"
+            - "classroom-db-0.classroom-db-service.default.svc.cluster.local:27017"
+            - "--eval"
+            - "rs.initiate({_id: 'rs-classroom', members: [{_id:0, host: 'classroom-db-0.classroom-db-service.default.svc.cluster.local:27017'}, {_id:1, host: 'classroom-db-1.classroom-db-service.default.svc.cluster.local:27017'}, {_id:2, host: 'classroom-db-2.classroom-db-service.default.svc.cluster.local:27017'}]})"
+      restartPolicy: OnFailure

@@ -1,0 +1,6 @@
+akhq:
+  connections:
+    local:
+      properties:
+        #bootstrap.servers: "192.168.0.160:9092"
+        bootstrap.servers: "kafka:9092"

@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-db-service
+spec:
+  ports:
+    - name: queue-db
+      port: 27017
+      targetPort: 27017
+  clusterIP: None
+  selector:
+    app: queue-db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: queue-db
+spec:
+  selector:
+    matchLabels:
+      app: queue-db
+  serviceName: "queue-db-service"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: queue-db
+    spec:
+      containers:
+        - name: queue-db
+          image: mongo:6.0
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "123456"
+          volumeMounts:
+            - name: queue-db-volume
+              mountPath: /data/db
+          ports:
+            - containerPort: 27017
+  volumeClaimTemplates:
+    - metadata:
+        name: queue-db-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: mongo-storage
+        resources:
+          requests:
+            storage: 1Gi

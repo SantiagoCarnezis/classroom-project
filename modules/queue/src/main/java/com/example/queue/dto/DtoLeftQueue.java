@@ -1,0 +1,16 @@
+package com.example.queue.dto;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class DtoLeftQueue {
+
+    private String roomId;
+    private String userId;
+    private String email;
+    private String name;
+}

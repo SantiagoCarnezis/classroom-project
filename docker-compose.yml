@@ -1,0 +1,134 @@
+version: '3.7'
+services:
+  mongo:
+    image: mongo:6.0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+      - MONGO_INITDB_DATABASE=classroom-db
+    ports:
+      - "7017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - mongo_logs:/var/log/mongodb
+      - ./mongo/mongod.conf:/etc/mongod.conf
+    command: mongod --config /etc/mongod.conf
+    expose:
+      - 7017
+
+  classroom:
+    build:
+      context: .
+      dockerfile: Dockerfile-classroom
+    depends_on:
+      - mongo
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - ROOM_PORT=8090
+      - QUEUE_PORT=8081
+      - MONGODB_USER=root
+      - MONGODB_PASSWORD=123456
+      - MONGO_DB=classroom-db
+      - MONGO_HOST=mongo
+      #- MONGO_REPLICA_SET=rs-classroom
+      - MONGO_PORT=27017
+    ports:
+      - "8090:8090"
+    volumes:
+      - classroom_logs:/app/logs
+    expose:
+      - 8090
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile-queue
+    depends_on:
+      - mongo
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - QUEUE_PORT=8081
+      - ROOM_PORT=8090
+      - MONGODB_USER=root
+      - MONGODB_PASSWORD=123456
+      - MONGO_DB=classroom-db
+      - MONGO_HOST=mongo
+      #- MONGO_REPLICA_SET=rs-classroom
+      - MONGO_PORT=27017
+    ports:
+      - "8081:8081"
+    volumes:
+      - queue_logs:/app/logs
+    expose:
+      - 8081
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9093:9092"
+      - "29093:29092"
+      - "9990:9999"
+    environment:
+
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+
+      CLUSTER_ID: kUfpI2ITRGu3yR8t7fAEtA
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_AUTO_CREATE: "true"
+
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  akhq:
+    image: tchiotludo/akhq
+    volumes:
+      - ./akhq-monitoring/configuration.yml:/app/application.yml
+    ports:
+      - "8082:8080"
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command:
+      - '--kafka.server=kafka:9092'
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+
+volumes:
+  mongo_data:
+  mongo_logs:
+  queue_logs:
+  classroom_logs:
+  kafka-data:
+  grafana-data:

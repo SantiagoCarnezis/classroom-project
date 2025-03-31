@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: classroom-db-service
+spec:
+  ports:
+    - name: classroom-db
+      port: 27017
+      targetPort: 27017
+  clusterIP: None
+  selector:
+    app: classroom-db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: classroom-db
+spec:
+  selector:
+    matchLabels:
+      app: classroom-db
+  serviceName: "classroom-db-service"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: classroom-db
+    spec:
+      containers:
+        - name: classroom-db
+          image: mongo:6.0
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "123456"
+          volumeMounts:
+            - name: classroom-db-volume
+              mountPath: /data/db
+          ports:
+            - containerPort: 27017
+  volumeClaimTemplates:
+    - metadata:
+        name: classroom-db-volume
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: mongo-storage
+        resources:
+          requests:
+            storage: 1Gi

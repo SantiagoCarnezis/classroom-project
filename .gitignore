@@ -1,0 +1,72 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+
+# Archivos y configuraciones de IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Archivos generados por Maven y Gradle
+target/
+build/
+out/
+!.mvn/wrapper/maven-wrapper.jar
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Archivos de logs y temporales
+logs/
+*.log
+*.swp
+*.swo
+*.bak
+
+# Configuración de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Dependencias descargadas
+.m2/
+.node_modules/
+
+# Variables de entorno y credenciales
+.env
+.env.local
+secrets/
+#*.yml
+#!src/main/resources/application.yml
+
+# Docker y Kubernetes
+docker-compose.override.yml
+.dockerignore
+.kube/
+*.pid
+
+
+# Archivos de compilación específicos de módulos
+modules/**/target/
+modules/**/build/
+modules/**/out/

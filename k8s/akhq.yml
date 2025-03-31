@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: akhq
+spec:
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8080
+  selector:
+    app: akhq
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: akhq-config
+data:
+  application.yml: |
+    akhq:
+      connections:
+        local:
+          properties:
+            bootstrap.servers: "kafka-service:9092"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akhq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: akhq
+  template:
+    metadata:
+      labels:
+        app: akhq
+    spec:
+      containers:
+        - name: akhq
+          image: tchiotludo/akhq
+          volumeMounts:
+            - name: akhq-config
+              mountPath: /app/application.yml
+              subPath: application.yml
+          ports:
+            - containerPort: 8080
+      volumes:
+        - name: akhq-config
+          configMap:
+            name: akhq-config

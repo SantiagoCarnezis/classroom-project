@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: classroom-service
+spec:
+  type: LoadBalancer
+  ports:
+    - name: backend-http
+      protocol: TCP
+      port: 8090
+      targetPort: 8090
+  selector:
+    app: classroom-backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: classroom-backend
+spec:
+  selector:
+    matchLabels:
+      app: classroom-backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: classroom-backend
+    spec:
+      containers:
+        - image: classroom
+          name: classroom-backend
+          imagePullPolicy: Never
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: ROOM_PORT
+              value: "8090"
+            - name: QUEUE_PORT
+              value: "8090"
+            - name: MONGODB_USER
+              value: root
+            - name: MONGODB_PASSWORD
+              value: "123456"
+            - name: MONGO_DB
+              value: classroom-db
+            - name: MONGO_HOST
+              value: "classroom-db-service.default.svc.cluster.local"
+            - name: MONGO_PORT
+              value: "27017"
+            - name: KAFKA_HOST
+              value: "kafka-service.default.svc.cluster.local:9092"
+          ports:
+            - containerPort: 8090
